@@ -1,0 +1,83 @@
+seed: 42
+
+paths:
+  data_dir: data/synthetic
+  checkpoints_dir: outputs/checkpoints
+  logs_dir: outputs/logs
+  donor_cache_dir: outputs/donor_bank_cache
+  donor_cache_file: outputs/donor_bank_cache/donor_bank_embeddings.npz
+  stage_a_ckpt: outputs/checkpoints/stage_a_best.pt
+  stage_b_ckpt: outputs/checkpoints/stage_b_best.pt
+  stage_c_ckpt: outputs/checkpoints/stage_c_best.pt
+  topk_output_file: outputs/logs/topk_results.csv
+
+data:
+  mode: synthetic
+  transform: log1p   # choices: log1p, clr
+  clr_eps: 1.0e-6
+  batch_size: 32
+  num_workers: 0
+  val_ratio: 0.2
+  use_group_split: true
+
+synthetic:
+  n_samples: 200
+  n_taxa: 180
+  n_donors: 40
+  n_recipients: 120
+  n_frc: 48
+  dirichlet_alpha_pre: 0.30
+  dirichlet_alpha_donor: 0.25
+  noise_std: 0.02
+  hidden_scale: 2.0
+
+graph:
+  graph_mode: frc   # choices: frc, species
+
+  frc:
+    map_path: data/synthetic/frc_map.tsv
+    tree_path: data/synthetic/frc_tree_edges.tsv
+    tree_format: edges   # choices: edges, newick
+    default_weight: 1.0
+
+  species:
+    dist_mat_path: data/synthetic/dist_mat.tsv
+    knn_k: 10
+    sigma: null
+
+encoder:
+  z_dim: 128
+  hidden_dim: 96
+  num_layers: 2
+  dropout: 0.10
+  backend: dense_gnn  # choices: dense_gnn, pyg, mlp
+
+forward:
+  hidden_dim: 256
+  dropout: 0.10
+
+inverse:
+  hidden_dim: 256
+  dropout: 0.10
+
+loss:
+  lambda_y: 1.0
+  lambda_c: 1.0
+  lambda_d: 0.2
+  donor_supervision_positive_only: true
+
+train:
+  device: auto
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  stage_a_epochs: 40
+  stage_b_epochs: 30
+  stage_c_epochs: 30
+  early_stop_patience: 8
+
+inference:
+  target_mode: prototype_healthy  # choices: prototype_healthy, reference_post
+  reference_post_index: null
+  top_k: 5
+  alpha: 0.5
+  batch_size: 64
